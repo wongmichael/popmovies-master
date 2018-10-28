@@ -10,4 +10,5 @@
     <string name="query_movies">movies</string>
     <string name="query_trailers">trailers</string>
     <string name="youtube">YouTube</string>
+    <string name="query_reviews">reviews</string>
 </resources>

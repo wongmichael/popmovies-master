@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NetworkUtils.API_KEY = getString(R.string.apikey);
+
         mList = (RecyclerView) findViewById(R.id.rv_movies);
         //LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         GridLayoutManager layoutManager = new GridLayoutManager(this,gridLayoutSpanCount);

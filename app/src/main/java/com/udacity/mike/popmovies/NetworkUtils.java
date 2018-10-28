@@ -28,9 +28,11 @@ public final class NetworkUtils { //based on feedback-class will never be extend
 
     final static String TMDB_PATH_MOVIE="/movie";
     final static String TMDB_PATH_VIDEOS="/videos";
+    final static String TMDB_PATH_REVIEWS="/reviews";
     //http://api.themoviedb.org/3/movie/popular?api_key=[YOUR_API_KEY]
-    final static String API_KEY= String.valueOf(R.string.apikey)
+    static String API_KEY
             //""
+            //assigned in MainActivity onCreate to resource string
             ;
     final static String PARAM_API="api_key";
 
@@ -53,6 +55,12 @@ public final class NetworkUtils { //based on feedback-class will never be extend
                 break;
             case R.string.query_trailers:
                 builtUri = Uri.parse(HTTP + TMDB_BASE_URL + TMDB_PATH_MOVIE+"/"+ movieId +TMDB_PATH_VIDEOS)
+                        .buildUpon()
+                        .appendQueryParameter(PARAM_API,API_KEY)
+                        .build();
+                break;
+            case R.string.query_reviews:
+                builtUri = Uri.parse(HTTP+TMDB_BASE_URL+TMDB_PATH_MOVIE+"/"+movieId+TMDB_PATH_REVIEWS)
                         .buildUpon()
                         .appendQueryParameter(PARAM_API,API_KEY)
                         .build();

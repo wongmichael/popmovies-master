@@ -20,6 +20,23 @@ public class JsonUtils {
     private static final String KEY_SIZE = "size";
     private static final String KEY_TYPE = "type";
 
+    private static final String KEY_AUTHOR = "author";
+    private static final String KEY_CONTENT = "content";
+    private static final String KEY_URL = "url";
+
+    public static Review parseReviewJsonResults(JSONObject results){
+        try{
+            String id = results.getString(KEY_ID);
+            String author = results.getString(KEY_AUTHOR);
+            String content = results.getString(KEY_CONTENT);
+            String url = results.getString(KEY_URL);
+            return new Review(id,author,content,url);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static Trailer parseTrailerJsonResult(JSONObject results){
         try {
             String id = results.getString(KEY_ID);

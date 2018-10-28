@@ -27,9 +27,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tv_release_date"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_trailer_label"
+        android:text="@string/query_trailers"/>
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="96dp"
         android:id="@+id/rv_trailers"></android.support.v7.widget.RecyclerView>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_review_label"
+        android:text="@string/query_reviews"/>
+    <android.support.v7.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="192dp"
+        android:id="@+id/rv_reviews"></android.support.v7.widget.RecyclerView>
 </LinearLayout>
 </ScrollView>

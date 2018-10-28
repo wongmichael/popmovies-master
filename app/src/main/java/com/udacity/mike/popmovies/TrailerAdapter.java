@@ -56,7 +56,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
         }
 
         public void bind(int itemIndex){
-            JSONObject j = JsonUtils.parseJsonArray(DetailActivity.resultsArray,itemIndex);
+            JSONObject j = JsonUtils.parseJsonArray(DetailActivity.trailerResultsArray,itemIndex);
             Trailer t = JsonUtils.parseTrailerJsonResult(j);
             trailerTextView.append(t.getName());
         }
