@@ -29,6 +29,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     private static final int gridLayoutSpanCount = 4;
 
     public static JSONArray resultsArray;
+    /*    private static final String RESULTS_ARRAY_JSON = "results";
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(RESULTS_ARRAY_JSON,resultsArray.toString());
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +50,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         mList.setLayoutManager(layoutManager);
         mList.setHasFixedSize(true);
 
+/*        if (savedInstanceState!=null){
+            try {
+                resultsArray = new JSONArray(savedInstanceState.getString(RESULTS_ARRAY_JSON));
+                NUM_LIST_ITEMS = resultsArray.length();
+                mAdapter = new MovieAdapter(NUM_LIST_ITEMS,MainActivity.this);
+                mList.setAdapter(mAdapter);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Log.d("savedInstanceStateNN","savedInstanceState!=null");
+        } else{
+            makeSearchQuery();
+        }*/
         makeSearchQuery();
 
  /*       mAdapter = new MovieAdapter(NUM_LIST_ITEMS, this);
