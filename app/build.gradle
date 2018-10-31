@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25 //26
     defaultConfig {
         applicationId "com.udacity.mike.popmovies"
-        minSdkVersion 10 //15
+        minSdkVersion 11 //10 //15
         targetSdkVersion 25 //26
         versionCode 1
         versionName "1.0"
