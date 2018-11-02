@@ -1,27 +1,25 @@
 package com.udacity.mike.popmovies;
 
 //import android.app.LoaderManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 //import android.content.AsyncTaskLoader;
-import android.content.Context;
 import android.content.Intent;
 //import android.content.Loader;
-import android.net.Network;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.udacity.mike.popmovies.data.MovieContract;
+import com.udacity.mike.popmovies.data.MovieDbHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,7 +28,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.ListItemClickListener, android.support.v4.app.LoaderManager.LoaderCallbacks<String> {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.ListItemClickListener, FavoriteAdapter.ListItemClickListener, android.support.v4.app.LoaderManager.LoaderCallbacks<String> {
 
     //private static final int NUM_LIST_ITEMS = 25;
     private int NUM_LIST_ITEMS = 5;
@@ -41,11 +39,40 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     public static JSONArray resultsArray;
 
+    public static SQLiteDatabase mDb;
+
     private static final int QUERY_LOADER = 22;
     private static final String QUERY_URL_EXTRA = "query";
     ///*
     //data persistence
     private static final String RESULTS_ARRAY_JSON = "results";
+
+    private static final int DB_QUERY_LOADER = 271;
+    protected FavoriteAdapter fAdapter;
+    public static boolean showFavs = false;
+
+    private void makeFavQuery(){
+        LoaderManager loaderManager = getSupportLoaderManager();
+        Loader<String> queryLoader = loaderManager.getLoader(DB_QUERY_LOADER);
+        if (queryLoader==null){
+            loaderManager.initLoader(DB_QUERY_LOADER,null,this);
+        } else {
+            loaderManager.restartLoader(DB_QUERY_LOADER,null,this);
+        }
+    }
+
+    private Cursor getFavorites(){
+        //Log.d("get favs","get favs");
+        return mDb.query(
+                MovieContract.MovieEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                MovieContract.MovieEntry.COLUMN_MOVIE_ID
+        );
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -56,10 +83,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("on create","on create");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         NetworkUtils.API_KEY = getString(R.string.apikey);
+
+        MovieDbHelper dbHelper = new MovieDbHelper(this);
+        mDb = dbHelper.getWritableDatabase();
 
         mList = (RecyclerView) findViewById(R.id.rv_movies);
         //LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -80,7 +111,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             }
             Log.d("savedInstanceStateNN","savedInstanceState!=null");
         } else{
-            makeSearchQuery();
+            Log.d("savedinstanceState null","savedinstanceState null");
+            if (showFavs){
+                populateUI();
+            } else {
+                makeSearchQuery();
+            }
         }
 
         //*/
@@ -94,16 +130,24 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     }
 
     private void populateUI(){
-        NUM_LIST_ITEMS = resultsArray.length();
-        mAdapter = new MovieAdapter(NUM_LIST_ITEMS,MainActivity.this);
-        mList.setAdapter(mAdapter);
+        if (!showFavs) {
+            NUM_LIST_ITEMS = resultsArray.length();
+            mAdapter = new MovieAdapter(NUM_LIST_ITEMS, MainActivity.this);
+            mList.setAdapter(mAdapter);
+        } else{
+            //showFavs
+            Log.d("popUI favs","popUI favs");
+            Cursor cursor = getFavorites();
+            fAdapter = new FavoriteAdapter(MainActivity.this,cursor, MainActivity.this);
+            mList.setAdapter(fAdapter);
+        }
     }
 
     //@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     private void makeSearchQuery(){
         URL searchUrl = NetworkUtils.buildUrl(R.string.query_movies,null);
         //Toast.makeText(this,searchUrl.toString(),Toast.LENGTH_LONG).show();
-        Log.d("json request",searchUrl.toString());
+        //Log.d("json request",searchUrl.toString());
         //new QueryTask().execute(searchUrl);
         Bundle queryBundle = new Bundle();
         queryBundle.putString(QUERY_URL_EXTRA,searchUrl.toString());
@@ -120,25 +164,27 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     //@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     @Override
-    public Loader<String> onCreateLoader(int i, final Bundle bundle) {
-        Log.d("ocl","ocl");
+    public Loader<String> onCreateLoader(final int i, final Bundle bundle) {
+        //Log.d("ocl","ocl");
         return new AsyncTaskLoader<String>(this) {
 
             String searchResults;
 
             @Override
             protected void onStartLoading() {
-                Log.d("onstart","onstart");
-                if(bundle==null){
+                //Log.d("onstart","onstart");
+                //if(bundle==null){
+                if(bundle==null && !showFavs){
                     Log.d("bundle null","bundle null");
                     return;
-                }
-                if(searchResults!=null){
+                } else if(searchResults!=null){
+                    Log.d("searchResults null","searchResults null");
                     deliverResult(searchResults);
                 }else {
+                    Log.d("forceload","forceload");
                     forceLoad(); //omg; need this
                 }
-                Log.d("onstart2","onstart2");
+                //Log.d("onstart2","onstart2");
             }
 
             @Override
@@ -150,36 +196,49 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             @Override
             public String loadInBackground() {
                 Log.d("load in background","loadinbkgd");
-                String searchResults = null;
-                URL searchUrl;
-                try {
-                    searchUrl = new URL(bundle.getString(QUERY_URL_EXTRA));
-                    searchResults = NetworkUtils.getResponseFromHttpUrl(searchUrl);
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Log.d("search results2",searchResults);
-                return searchResults;
+                if (i==QUERY_LOADER) {
+                    String searchResults = null;
+                    URL searchUrl;
+                    try {
+                        searchUrl = new URL(bundle.getString(QUERY_URL_EXTRA));
+                        searchResults = NetworkUtils.getResponseFromHttpUrl(searchUrl);
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    //Log.d("search results2",searchResults);
+                    return searchResults;
+                } else if (i==DB_QUERY_LOADER){
+                    //Log.d("db query loader","db query loader");
+                    Cursor cursor = getFavorites();
+                    fAdapter = new FavoriteAdapter(MainActivity.this,cursor, MainActivity.this);
+                    Log.d("adapter countt", String.valueOf(fAdapter.getItemCount()));
+                    //mList.setAdapter(fAdapter); //UI done in onLoadFinished
+                    //return null;
+                } return null;
             }
         };
     }
 
     @Override
     public void onLoadFinished(Loader<String> loader, String s) {
-        Log.d("finished","finished");
-        if (s != null && !s.equals("")){
-            //Toast.makeText(this,s,Toast.LENGTH_LONG).show();
-            Log.d("search results",s);
-            resultsArray = JsonUtils.createJSONarray(s);
+        if (showFavs){
+            populateUI();
+        } else {
+            //Log.d("finished","finished");
+            if (s != null && !s.equals("")) {
+                //Toast.makeText(this,s,Toast.LENGTH_LONG).show();
+                Log.d("search results", s);
+                resultsArray = JsonUtils.createJSONarray(s);
 /*                NUM_LIST_ITEMS = resultsArray.length();
                 mAdapter = new MovieAdapter(NUM_LIST_ITEMS,MainActivity.this);
                 mList.setAdapter(mAdapter);*/
-            populateUI();
-        } else {
-            Log.d("no data found~~","no data found!");
-            Toast.makeText(getApplicationContext(),R.string.error_message,Toast.LENGTH_SHORT).show();
+                populateUI();
+            } else {
+                Log.d("no data found~~", "no data found!");
+                Toast.makeText(getApplicationContext(), R.string.error_message, Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -188,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         Log.d("loader reset","loader reset");
     }
 
-    public class QueryTask extends AsyncTask<URL,Void,String>{
+/*    public class QueryTask extends AsyncTask<URL,Void,String>{
 
         @Override
         protected String doInBackground(URL... urls) {
@@ -210,9 +269,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 //Toast.makeText(this,s,Toast.LENGTH_LONG).show();
                 Log.d("search results",s);
                 resultsArray = JsonUtils.createJSONarray(s);
-/*                NUM_LIST_ITEMS = resultsArray.length();
+*//*                NUM_LIST_ITEMS = resultsArray.length();
                 mAdapter = new MovieAdapter(NUM_LIST_ITEMS,MainActivity.this);
-                mList.setAdapter(mAdapter);*/
+                mList.setAdapter(mAdapter);*//*
                 populateUI();
 
 
@@ -221,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 Toast.makeText(getApplicationContext(),R.string.error_message,Toast.LENGTH_SHORT).show();
             }
         }
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -241,21 +300,32 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 NetworkUtils.sortBy = NetworkUtils.popularity+"."+NetworkUtils.desc;
                 makeSearchQuery();
                 setTitle(getString(R.string.most_popular));
+                showFavs = false;
                 return true;
             case R.id.least_popular:
                 NetworkUtils.sortBy = NetworkUtils.popularity+"."+NetworkUtils.asc;
                 makeSearchQuery();
                 setTitle(getString(R.string.least_popular));
+                showFavs = false;
                 return true;
             case R.id.top_rated:
                 NetworkUtils.sortBy = NetworkUtils.vote_average+"."+NetworkUtils.desc;
                 makeSearchQuery();
                 setTitle(getString(R.string.top_rated));
+                showFavs = false;
                 return true;
             case R.id.bottom_rated:
                 NetworkUtils.sortBy = NetworkUtils.vote_average+"."+NetworkUtils.asc;
                 makeSearchQuery();
                 setTitle(getString(R.string.bottom_rated));
+                showFavs = false;
+                return true;
+            case R.id.favorites:
+                if (!showFavs){
+                    showFavs = true;
+                    makeFavQuery();
+                }
+                setTitle(getString(R.string.favorites));
                 return true;
             case R.id.action_show_pics:
                 if(item.isChecked()){

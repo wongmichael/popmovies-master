@@ -11,4 +11,7 @@
     <string name="query_trailers">trailers</string>
     <string name="youtube">YouTube</string>
     <string name="query_reviews">reviews</string>
+    <string name="favorites">favorites</string>
+    <string name="favorite">favorite</string>
+    <string name="unfavorite">unfavorite</string>
 </resources>

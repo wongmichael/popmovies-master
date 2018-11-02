@@ -1,6 +1,8 @@
 package com.udacity.mike.popmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,11 +11,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
+import com.udacity.mike.popmovies.data.MovieContract;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -34,6 +39,9 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
     @BindView(R.id.tv_overview) TextView overviewTv;
     @BindView(R.id.tv_rating) TextView ratingTv;
     @BindView(R.id.tv_release_date) TextView releaseDateTv;
+
+    @BindView(R.id.butt_fav)
+    Button favButton;
 
     @BindView(R.id.rv_trailers) RecyclerView trailerRv;
     @BindView(R.id.rv_reviews) RecyclerView reviewRv;
@@ -64,7 +72,7 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         }
 
         JSONObject j = JsonUtils.parseJsonArray(MainActivity.resultsArray,position);
-        Movie m = JsonUtils.parseMovieJsonResult(j);
+        final Movie m = JsonUtils.parseMovieJsonResult(j);
         titleTv.append(m.getOrigTitle());
         imageIv.setContentDescription(m.getOrigTitle());
         if (MovieAdapter.showPics) {
@@ -80,6 +88,20 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
 
         setTitle(m.getOrigTitle());
 
+        new CheckFavTask().execute(String.valueOf(m.getId()));
+
+        favButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (addFavorite(m)!=-1){ //-1 is db insert error
+                    favButton.setText(R.string.unfavorite);
+                } else{
+                    favButton.setText(R.string.favorite);
+                }
+                //MainActivity.fAdapter.swapCursor(MainActivity.getFavorites());
+            }
+        });
+
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         trailerRv.setLayoutManager(layoutManager);
         trailerRv.setHasFixedSize(true);
@@ -92,6 +114,17 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         getReviews(m.getId());
     }
 
+    private long addFavorite(Movie m){
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID,m.getId());
+        cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE,m.getOrigTitle());
+        cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW,m.getOverview());
+        cv.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH,m.getImage());
+        cv.put(MovieContract.MovieEntry.COLUMN_RATING,m.getRating());
+        cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE,m.getReleaseDate());
+        return MainActivity.mDb.insert(MovieContract.MovieEntry.TABLE_NAME,null,cv);
+    }
+
     private void getReviews(int movieId) {
         URL searchUrl = NetworkUtils.buildUrl(R.string.query_reviews,String.valueOf(movieId));
         Log.d("review request",searchUrl.toString());
@@ -102,6 +135,37 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         URL searchUrl = NetworkUtils.buildUrl(R.string.query_trailers,String.valueOf(movieId));
         Log.d("trailer request",searchUrl.toString());
         new QueryTask().execute(searchUrl);
+    }
+
+    private String checkFav(int movieId){
+        Log.d("checkfav","checkfav");
+        Cursor cf = MainActivity.mDb.query(
+                    MovieContract.MovieEntry.TABLE_NAME,
+                new String[]{MovieContract.MovieEntry.COLUMN_MOVIE_ID},
+                MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=?",
+                new String[]{String.valueOf(movieId)},
+                    null,
+                    null,
+                    MovieContract.MovieEntry.COLUMN_MOVIE_ID
+            );
+        if (!cf.moveToFirst()){
+            return null;
+        } else{
+            return cf.getString(0);
+        }
+    }
+    private class CheckFavTask extends AsyncTask<String,Void,Boolean>{
+        @Override
+        protected Boolean doInBackground(String... ids) {
+            return (checkFav(Integer.parseInt(ids[0]))==ids[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if(aBoolean){
+                favButton.setText(R.string.unfavorite);
+            }
+        }
     }
 
     private void closeOnError() {

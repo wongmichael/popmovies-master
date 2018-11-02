@@ -27,10 +27,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tv_release_date"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/butt_fav"
+        android:text="@string/favorite"
+        android:textStyle="bold"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tv_trailer_label"
+        android:textStyle="bold"
         android:text="@string/query_trailers"/>
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"
@@ -40,6 +47,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tv_review_label"
+        android:textStyle="bold"
         android:text="@string/query_reviews"/>
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"

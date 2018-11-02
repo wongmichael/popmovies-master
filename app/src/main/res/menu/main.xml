@@ -10,6 +10,7 @@
             <item android:id="@+id/bottom_rated" android:title="@string/bottom_rated"/>
             <item android:id="@+id/most_popular" android:title="@string/most_popular" />
             <item android:id="@+id/least_popular" android:title="@string/least_popular" />
+            <item android:id="@+id/favorites" android:title="@string/favorites" />
         </menu>
     </item>
     <item android:id="@+id/action_show_pics"
