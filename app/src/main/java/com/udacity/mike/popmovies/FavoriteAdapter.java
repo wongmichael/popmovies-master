@@ -13,6 +13,8 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.udacity.mike.popmovies.data.MovieContract;
 
+import butterknife.BindView;
+
 import static com.udacity.mike.popmovies.MovieAdapter.showPics;
 
 public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.FavoriteViewHolder> {
@@ -21,9 +23,12 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.Favori
     //private int fNumberOfFavorites;
     private Cursor mCursor;
 
+    //@BindView(R.id.tv_movie_item_number) TextView movieItemView;
+
     private final ListItemClickListener fOnClickListener;
     public interface ListItemClickListener{
         void onListItemClick(int clickedItemIndex);
+        //void onListItemClick(String movieId);
     }
 
     //public FavoriteAdapter(Context context,int count){
@@ -64,6 +69,8 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.Favori
         int id = Integer.parseInt(mCursor.getString(mCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID)));
         movieItemView.append(title);
         movieImageView.setContentDescription(title);
+        TextView movieIdItemView = (TextView) holder.itemView.findViewById(R.id.tv_movie_item_movieId);
+        movieIdItemView.append(String.valueOf(id));
         if(showPics){
             Picasso.with(mContext)
                     //with(movieImageView.getContext())
@@ -98,8 +105,11 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.Favori
 
         @Override
         public void onClick(View view) {
-            int clickedPosition = getAdapterPosition();
-            fOnClickListener.onListItemClick(clickedPosition);
+/*            int clickedPosition = getAdapterPosition();
+            fOnClickListener.onListItemClick(clickedPosition);*/
+            TextView movieId = view.findViewById(R.id.tv_movie_item_movieId);
+            Log.d("getText MovID",String.valueOf(movieId.getText()));
+            fOnClickListener.onListItemClick(Integer.parseInt(String.valueOf(movieId.getText())));
         }
     }
 }

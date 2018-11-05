@@ -29,8 +29,11 @@ import java.net.URL;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.udacity.mike.popmovies.MainActivity.showFavs;
+
 public class DetailActivity extends AppCompatActivity implements TrailerAdapter.TrailerClickListener, ReviewAdapter.ReviewClickListener {
     public static final String EXTRA_POS = "extra_position";
+    public static final String EXTRA_MOVID = "extra_movid";
     private static final int DEFAULT_POS = -1;
     @BindView(R.id.tv_movie_title)
     TextView titleTv;
@@ -52,6 +55,19 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
     private TrailerAdapter tAdapter;
     private ReviewAdapter rAdapter;
 
+    private Cursor getMovie(String movId){
+        //Log.d("get favs","get favs");
+        return MainActivity.mDb.query(
+                MovieContract.MovieEntry.TABLE_NAME,
+                null,
+                MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=?",
+                new String[]{movId},
+                null,
+                null,
+                null
+        );
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,15 +80,27 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
             closeOnError();
             return;
         }
-
-        //necessary?
-        int position = intent.getIntExtra(EXTRA_POS,DEFAULT_POS);
-        if (position==DEFAULT_POS){
-            closeOnError(); return;
+        final Movie m;
+        if(showFavs){
+            String movieId = intent.getStringExtra(EXTRA_MOVID);
+            Cursor mCursor = getMovie(movieId);
+            mCursor.moveToFirst();
+            String title = mCursor.getString(mCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE));
+            String image = mCursor.getString(mCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POSTER_PATH));
+            String overview = mCursor.getString(mCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW));
+            Double rating = Double.valueOf(mCursor.getString(mCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING)));
+            String releaseDate = mCursor.getString(mCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE));
+            m = new Movie(Integer.parseInt(movieId),title,image,overview,rating,releaseDate);
+        } else {
+            //necessary?
+            int position = intent.getIntExtra(EXTRA_POS, DEFAULT_POS);
+            if (position == DEFAULT_POS) {
+                closeOnError();
+                return;
+            }
+            JSONObject j = JsonUtils.parseJsonArray(MainActivity.resultsArray, position);
+            m = JsonUtils.parseMovieJsonResult(j);
         }
-
-        JSONObject j = JsonUtils.parseJsonArray(MainActivity.resultsArray,position);
-        final Movie m = JsonUtils.parseMovieJsonResult(j);
         titleTv.append(m.getOrigTitle());
         imageIv.setContentDescription(m.getOrigTitle());
         if (MovieAdapter.showPics) {
@@ -87,7 +115,7 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         ratingTv.append(String.valueOf(m.getRating()));
 
         setTitle(m.getOrigTitle());
-
+        Log.d("m.getId~~~",String.valueOf(m.getId()));
         new CheckFavTask().execute(String.valueOf(m.getId()));
 
         favButton.setOnClickListener(new View.OnClickListener() {
@@ -96,6 +124,7 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
                 if (addFavorite(m)!=-1){ //-1 is db insert error
                     favButton.setText(R.string.unfavorite);
                 } else{
+                    removeFavorite(m);
                     favButton.setText(R.string.favorite);
                 }
                 //MainActivity.fAdapter.swapCursor(MainActivity.getFavorites());
@@ -125,6 +154,10 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         return MainActivity.mDb.insert(MovieContract.MovieEntry.TABLE_NAME,null,cv);
     }
 
+    private long removeFavorite(Movie m){
+        return MainActivity.mDb.delete(MovieContract.MovieEntry.TABLE_NAME,MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=?", new String[]{String.valueOf(m.getId())});
+    }
+
     private void getReviews(int movieId) {
         URL searchUrl = NetworkUtils.buildUrl(R.string.query_reviews,String.valueOf(movieId));
         Log.d("review request",searchUrl.toString());
@@ -137,7 +170,7 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         new QueryTask().execute(searchUrl);
     }
 
-    private String checkFav(int movieId){
+    private Boolean checkFav(int movieId){
         Log.d("checkfav","checkfav");
         Cursor cf = MainActivity.mDb.query(
                     MovieContract.MovieEntry.TABLE_NAME,
@@ -146,24 +179,32 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
                 new String[]{String.valueOf(movieId)},
                     null,
                     null,
-                    MovieContract.MovieEntry.COLUMN_MOVIE_ID
+                    null
             );
         if (!cf.moveToFirst()){
-            return null;
+            //return null;
+            return false;
         } else{
-            return cf.getString(0);
+            return cf.getCount()>0;
+            //return cf.getString(0);
         }
     }
     private class CheckFavTask extends AsyncTask<String,Void,Boolean>{
         @Override
         protected Boolean doInBackground(String... ids) {
-            return (checkFav(Integer.parseInt(ids[0]))==ids[0]);
+/*            Boolean b = checkFav(Integer.parseInt(ids[0])).equals(ids[0]);
+            Log.d("checkfav",checkFav(Integer.parseInt(ids[0]))+"==?"+ids[0]);
+            Log.d("checkfav2", String.valueOf(b));
+            return (checkFav(Integer.parseInt(ids[0])).equals(ids[0]));*/
+            return checkFav(Integer.parseInt(ids[0]));
         }
 
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             if(aBoolean){
                 favButton.setText(R.string.unfavorite);
+            } else {
+                favButton.setText(R.string.favorite);
             }
         }
     }

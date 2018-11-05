@@ -56,10 +56,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView movieItemView;
         ImageView movieImageView;
+        TextView movieIdItemView;
         public MovieViewHolder(View itemView) {
             super(itemView);
             movieItemView = (TextView) itemView.findViewById(R.id.tv_movie_item_number);
             movieImageView = (ImageView) itemView.findViewById(R.id.iv_movie_thumb);
+            movieIdItemView = (TextView) itemView.findViewById(R.id.tv_movie_item_movieId);
             itemView.setOnClickListener(this);
         }
         public void bind(int itemIndex){
@@ -68,6 +70,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             Movie m = JsonUtils.parseMovieJsonResult(j);
             movieItemView.append(m.getOrigTitle());
             movieImageView.setContentDescription(m.getOrigTitle());
+            movieIdItemView.append(String.valueOf(m.getId()));
             if (showPics) {
                 Picasso.with(movieImageView.getContext())
                         .load(m.getImage(NetworkUtils.SIZE_W185))

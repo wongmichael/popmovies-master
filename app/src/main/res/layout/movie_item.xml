@@ -9,6 +9,11 @@
 <!--    android:layout_toStartOf="@id/iv_movie_thumb"
     android:layout_above="@id/iv_movie_thumb"-->
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_movie_item_movieId"/>
+
 <ImageView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"

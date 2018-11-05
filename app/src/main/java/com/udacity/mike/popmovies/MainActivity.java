@@ -16,6 +16,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.udacity.mike.popmovies.data.MovieContract;
@@ -136,9 +137,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             mList.setAdapter(mAdapter);
         } else{
             //showFavs
-            Log.d("popUI favs","popUI favs");
+            //Log.d("popUI favs","popUI favs");
             Cursor cursor = getFavorites();
             fAdapter = new FavoriteAdapter(MainActivity.this,cursor, MainActivity.this);
+            Log.d("fadapter countt", String.valueOf(fAdapter.getItemCount()));
             mList.setAdapter(fAdapter);
         }
     }
@@ -211,9 +213,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     return searchResults;
                 } else if (i==DB_QUERY_LOADER){
                     //Log.d("db query loader","db query loader");
-                    Cursor cursor = getFavorites();
-                    fAdapter = new FavoriteAdapter(MainActivity.this,cursor, MainActivity.this);
-                    Log.d("adapter countt", String.valueOf(fAdapter.getItemCount()));
+                    //Cursor cursor = getFavorites();
+                    //fAdapter = new FavoriteAdapter(MainActivity.this,cursor, MainActivity.this);
+                    //Log.d("adapter countt", String.valueOf(fAdapter.getItemCount()));
                     //mList.setAdapter(fAdapter); //UI done in onLoadFinished
                     //return null;
                 } return null;
@@ -355,8 +357,20 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         String toastMessage = "Item #"+clickedItemIndex+" clicked.";
         mToast = Toast.makeText(this,toastMessage,Toast.LENGTH_LONG);
         mToast.show();*/
+        if(showFavs){
+            //TextView movieId = (TextView) findViewById(R.id.tv_movie_item_movieId);
+            Log.d("getText MovID", String.valueOf(clickedItemIndex));
+            launchDetailActivity(String.valueOf(clickedItemIndex));
+        }else {
+            launchDetailActivity(clickedItemIndex);
+        }
+    }
 
-        launchDetailActivity(clickedItemIndex);
+    private void launchDetailActivity(String text) {
+        Intent intent = new Intent(this,DetailActivity.class);
+        intent.putExtra(DetailActivity.EXTRA_MOVID, text);
+        Log.d("Extra MovID",text);
+        startActivity(intent);
     }
 
     private void launchDetailActivity(int clickedItemIndex) {
