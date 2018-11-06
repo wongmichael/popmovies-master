@@ -1,5 +1,9 @@
 package com.udacity.mike.popmovies;
 
+/*import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;*/
+
+//@Entity(tableName = "favorite_movies")
 public class Movie {
 
     private String origTitle;
@@ -8,6 +12,7 @@ public class Movie {
     //private String rating;
     private double rating;
     private String releaseDate;
+    //@PrimaryKey
     private int id;
 
     public Movie(){

@@ -46,6 +46,9 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
     @BindView(R.id.butt_fav)
     Button favButton;
 
+    @BindView(R.id.butt_share) Button shareButton;
+    public static Trailer firstTrailer;
+
     @BindView(R.id.rv_trailers) RecyclerView trailerRv;
     @BindView(R.id.rv_reviews) RecyclerView reviewRv;
 
@@ -277,8 +280,29 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
                 trailerRv.setAdapter(tAdapter);
                 if(num_of_trailer_items==0){
                     trailerLabelTv.setText(R.string.no_trailers);
+                    shareButton.setVisibility(View.GONE);
                 } else {
                     trailerLabelTv.setText(R.string.query_trailers);
+                    shareButton.setVisibility(View.VISIBLE);
+                    //final Trailer firstTrailer = tAdapter.getFirstTrailer();
+/*                    Log.d("firstTrailer", String.valueOf(firstTrailer));
+                    Log.d("first Trailer~~",firstTrailer.getName());
+                    Log.d("first Trailer site-",firstTrailer.getSite());*/
+                    shareButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent shareIntent = new Intent();
+                            shareIntent.setAction(Intent.ACTION_SEND);
+                            String linkUrl = null;
+                            if (firstTrailer.getSite().equalsIgnoreCase(getString(R.string.youtube))) {
+                                linkUrl = NetworkUtils.HTTP + NetworkUtils.YOUTUBE_BASE_URL + firstTrailer.getKey();
+                            }
+                            shareIntent.putExtra(Intent.EXTRA_TEXT, firstTrailer.getName() + "\n"
+                                    + linkUrl);
+                            shareIntent.setType("text/plain");
+                            startActivity(Intent.createChooser(shareIntent,getString(R.string.share)));
+                        }
+                    });
                 }
 
             } else {

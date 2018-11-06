@@ -16,7 +16,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.udacity.mike.popmovies.data.MovieContract;
@@ -31,6 +30,8 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements MovieAdapter.ListItemClickListener, FavoriteAdapter.ListItemClickListener, android.support.v4.app.LoaderManager.LoaderCallbacks<String> {
 
+    //private static final String MENU_ITEM_ID = "menuItemID";
+    private static int clicked_menu_item_string =R.string.most_popular;
     //private static final int NUM_LIST_ITEMS = 25;
     private int NUM_LIST_ITEMS = 5;
     private MovieAdapter mAdapter;
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         MovieDbHelper dbHelper = new MovieDbHelper(this);
         mDb = dbHelper.getWritableDatabase();
 
-        mList = (RecyclerView) findViewById(R.id.rv_movies);
+        mList = findViewById(R.id.rv_movies);
         //LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         GridLayoutManager layoutManager = new GridLayoutManager(this,gridLayoutSpanCount);
         mList.setLayoutManager(layoutManager);
@@ -175,6 +176,25 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         }
     }
 
+/*    private void makeSearchQuery(int i){
+        URL searchUrl = NetworkUtils.buildUrl(R.string.query_movies,null);
+        //Toast.makeText(this,searchUrl.toString(),Toast.LENGTH_LONG).show();
+        //Log.d("json request",searchUrl.toString());
+        //new QueryTask().execute(searchUrl);
+        Bundle queryBundle = new Bundle();
+        queryBundle.putString(QUERY_URL_EXTRA,searchUrl.toString());
+        //queryBundle.putInt(MENU_ITEM_ID,i);
+        LoaderManager loaderManager = getSupportLoaderManager();
+        Loader<String> queryLoader = loaderManager.getLoader(QUERY_LOADER);
+        if (queryLoader==null){
+            Log.d("loader null","loader null");
+            loaderManager.initLoader(QUERY_LOADER,queryBundle,this);
+        } else {
+            Log.d("loader not null","loader not null");
+            loaderManager.restartLoader(QUERY_LOADER,queryBundle,this);
+        }
+    }*/
+
     //@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
     @Override
     public Loader<String> onCreateLoader(final int i, final Bundle bundle) {
@@ -238,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     public void onLoadFinished(Loader<String> loader, String s) {
         if (showFavs){
             populateUI();
+            setTitle(clicked_menu_item_string);
         } else {
             //Log.d("finished","finished");
             if (s != null && !s.equals("")) {
@@ -248,6 +269,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 mAdapter = new MovieAdapter(NUM_LIST_ITEMS,MainActivity.this);
                 mList.setAdapter(mAdapter);*/
                 populateUI();
+                setTitle(clicked_menu_item_string);
             } else {
                 Log.d("no data found~~", "no data found!");
                 Toast.makeText(getApplicationContext(), R.string.error_message, Toast.LENGTH_SHORT).show();
@@ -311,34 +333,40 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 String textToShow = "Sort clicked";
                 Toast.makeText(context,textToShow,Toast.LENGTH_LONG).show();*/
                 NetworkUtils.sortBy = NetworkUtils.popularity+"."+NetworkUtils.desc;
+                clicked_menu_item_string =R.string.most_popular;
                 makeSearchQuery();
-                setTitle(getString(R.string.most_popular));
+                //need to refactor and move setTitle and showfavs inside query-process (couple them) since query can fail (offline)
+                //setTitle(getString(R.string.most_popular));
                 showFavs = false;
                 return true;
             case R.id.least_popular:
                 NetworkUtils.sortBy = NetworkUtils.popularity+"."+NetworkUtils.asc;
                 makeSearchQuery();
-                setTitle(getString(R.string.least_popular));
+                clicked_menu_item_string =R.string.least_popular;
+                //setTitle(getString(R.string.least_popular));
                 showFavs = false;
                 return true;
             case R.id.top_rated:
                 NetworkUtils.sortBy = NetworkUtils.vote_average+"."+NetworkUtils.desc;
                 makeSearchQuery();
-                setTitle(getString(R.string.top_rated));
+                clicked_menu_item_string =R.string.top_rated;
+                //setTitle(getString(R.string.top_rated));
                 showFavs = false;
                 return true;
             case R.id.bottom_rated:
                 NetworkUtils.sortBy = NetworkUtils.vote_average+"."+NetworkUtils.asc;
                 makeSearchQuery();
-                setTitle(getString(R.string.bottom_rated));
+                clicked_menu_item_string =R.string.bottom_rated;
+                //setTitle(getString(R.string.bottom_rated));
                 showFavs = false;
                 return true;
             case R.id.favorites:
                 if (!showFavs){
                     showFavs = true;
+                    clicked_menu_item_string =R.string.favorites;
                     makeFavQuery();
                 }
-                setTitle(getString(R.string.favorites));
+                //setTitle(getString(R.string.favorites));
                 return true;
 /*            case R.id.action_share:
                 shareTrailerLink();

@@ -2,6 +2,7 @@ package com.udacity.mike.popmovies;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
 
     private int tNumberTrailers;
     private final TrailerClickListener tOnClickListener;
+    //private Trailer firstTrailer;
 
     public interface TrailerClickListener{
         void onListItemClick(int clickedItemIndex);
@@ -48,12 +50,12 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
     class TrailerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         //@BindView(R.id.tv_trailer_item)
         TextView trailerTextView;
-        TextView trailerShareTextView;
+        //TextView trailerShareTextView;
 
         public TrailerViewHolder(View itemView) {
             super(itemView);
-            trailerTextView = (TextView) itemView.findViewById(R.id.tv_trailer_item);
-            trailerShareTextView = (TextView) itemView.findViewById(R.id.tv_trailer_item_share);
+            trailerTextView = itemView.findViewById(R.id.tv_trailer_item);
+            //trailerShareTextView = (TextView) itemView.findViewById(R.id.tv_trailer_item_share);
             itemView.setOnClickListener(this);
         }
 
@@ -62,6 +64,10 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
             Trailer t = JsonUtils.parseTrailerJsonResult(j);
             trailerTextView.append(t.getName());
             //trailerShareTextView.append("Share");
+            if (itemIndex==0){
+                DetailActivity.firstTrailer=t;
+                Log.d("bound first trailer", DetailActivity.firstTrailer.getName());
+            }
         }
 
         @Override
