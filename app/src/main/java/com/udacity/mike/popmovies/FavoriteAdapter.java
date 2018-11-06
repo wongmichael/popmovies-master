@@ -107,7 +107,7 @@ public class FavoriteAdapter extends RecyclerView.Adapter<FavoriteAdapter.Favori
         public void onClick(View view) {
 /*            int clickedPosition = getAdapterPosition();
             fOnClickListener.onListItemClick(clickedPosition);*/
-            TextView movieId = view.findViewById(R.id.tv_movie_item_movieId);
+            TextView movieId = (TextView) view.findViewById(R.id.tv_movie_item_movieId);
             Log.d("getText MovID",String.valueOf(movieId.getText()));
             fOnClickListener.onListItemClick(Integer.parseInt(String.valueOf(movieId.getText())));
         }

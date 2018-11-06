@@ -20,6 +20,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".DetailActivity" android:parentActivityName=".MainActivity"/>
+        <provider
+            android:authorities="com.udacity.mike.popmovies"
+            android:name="com.udacity.mike.popmovies.data.MovieProvider"
+            android:exported="false" />
     </application>
 
 </manifest>

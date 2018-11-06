@@ -49,6 +49,9 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
     @BindView(R.id.rv_trailers) RecyclerView trailerRv;
     @BindView(R.id.rv_reviews) RecyclerView reviewRv;
 
+    @BindView(R.id.tv_review_label) TextView reviewLabelTv;
+    @BindView(R.id.tv_trailer_label) TextView trailerLabelTv;
+
     public static JSONArray trailerResultsArray;
     public static JSONArray reviewResultsArray;
 
@@ -121,7 +124,10 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         favButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (addFavorite(m)!=-1){ //-1 is db insert error
+                //Log.d("favbutton-text", String.valueOf(favButton.getText()));
+                //Log.d("text-compare", String.valueOf(favButton.getText().equals(getString(R.string.favorite))));
+                if (favButton.getText().equals(getString(R.string.favorite)) && addFavorite(m)!=null){
+                //(addFavorite(m)!=-1){ //-1 is db insert error
                     favButton.setText(R.string.unfavorite);
                 } else{
                     removeFavorite(m);
@@ -143,7 +149,7 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         getReviews(m.getId());
     }
 
-    private long addFavorite(Movie m){
+    private Uri addFavorite(Movie m){
         ContentValues cv = new ContentValues();
         cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID,m.getId());
         cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE,m.getOrigTitle());
@@ -151,7 +157,12 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         cv.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH,m.getImage());
         cv.put(MovieContract.MovieEntry.COLUMN_RATING,m.getRating());
         cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE,m.getReleaseDate());
-        return MainActivity.mDb.insert(MovieContract.MovieEntry.TABLE_NAME,null,cv);
+        //return MainActivity.mDb.insert(MovieContract.MovieEntry.TABLE_NAME,null,cv);
+        Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI,cv);
+        if(uri!=null){
+            Toast.makeText(getBaseContext(),uri.toString(),Toast.LENGTH_LONG).show();
+        }
+        return uri;
     }
 
     private long removeFavorite(Movie m){
@@ -264,6 +275,11 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
                 int num_of_trailer_items = trailerResultsArray.length();
                 tAdapter = new TrailerAdapter(num_of_trailer_items, DetailActivity.this);
                 trailerRv.setAdapter(tAdapter);
+                if(num_of_trailer_items==0){
+                    trailerLabelTv.setText(R.string.no_trailers);
+                } else {
+                    trailerLabelTv.setText(R.string.query_trailers);
+                }
 
             } else {
                 Log.d("no trailer data found~~","no trailer data found!");
@@ -294,11 +310,17 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
                 int num_of_review_items = reviewResultsArray.length();
                 rAdapter = new ReviewAdapter(num_of_review_items, DetailActivity.this);
                 reviewRv.setAdapter(rAdapter);
+                if (num_of_review_items==0){
+                    reviewLabelTv.setText(R.string.no_reviews);
+                } else{
+                    reviewLabelTv.setText(R.string.query_reviews);
+                }
 
             } else {
                 Log.d("no review data found~~","no review data found!");
                 Toast.makeText(getApplicationContext(),R.string.error_message,Toast.LENGTH_SHORT).show();
             }
         }
+
     }
 }

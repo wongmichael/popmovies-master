@@ -64,7 +64,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     private Cursor getFavorites(){
         //Log.d("get favs","get favs");
-        return mDb.query(
+        try{
+            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    null);
+        } catch (Exception e){
+            Log.e(MainActivity.class.getSimpleName(),"Failed to asynchronously load data.");
+            e.printStackTrace();
+            return null;
+        }
+/*        return mDb.query(
                 MovieContract.MovieEntry.TABLE_NAME,
                 null,
                 null,
@@ -72,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 null,
                 null,
                 MovieContract.MovieEntry.COLUMN_MOVIE_ID
-        );
+        );*/
     }
 
     @Override
@@ -329,6 +340,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 }
                 setTitle(getString(R.string.favorites));
                 return true;
+/*            case R.id.action_share:
+                shareTrailerLink();
+                return true;*/
             case R.id.action_show_pics:
                 if(item.isChecked()){
                     item.setChecked(false);

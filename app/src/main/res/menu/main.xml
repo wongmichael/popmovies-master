@@ -13,9 +13,13 @@
             <item android:id="@+id/favorites" android:title="@string/favorites" />
         </menu>
     </item>
+<!--    <item android:id="@+id/action_share"
+        android:title="@string/share"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom" ></item>-->
     <item android:id="@+id/action_show_pics"
         android:title="@string/action_show_pics"
-        android:orderInCategory="2"
+        android:orderInCategory="3"
         android:checkable="true"
         android:checked="true"/>
 </menu>

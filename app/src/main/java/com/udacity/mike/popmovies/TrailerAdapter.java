@@ -48,10 +48,12 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
     class TrailerViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         //@BindView(R.id.tv_trailer_item)
         TextView trailerTextView;
+        TextView trailerShareTextView;
 
         public TrailerViewHolder(View itemView) {
             super(itemView);
             trailerTextView = (TextView) itemView.findViewById(R.id.tv_trailer_item);
+            trailerShareTextView = (TextView) itemView.findViewById(R.id.tv_trailer_item_share);
             itemView.setOnClickListener(this);
         }
 
@@ -59,6 +61,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.TrailerV
             JSONObject j = JsonUtils.parseJsonArray(DetailActivity.trailerResultsArray,itemIndex);
             Trailer t = JsonUtils.parseTrailerJsonResult(j);
             trailerTextView.append(t.getName());
+            //trailerShareTextView.append("Share");
         }
 
         @Override
