@@ -8,6 +8,7 @@
     <string name="action_show_pics">Show Pics</string>
     <string name="error_message">Failed to get results. No movies found!</string>
     <string name="query_movies">movies</string>
+    <string name="query_movies_rated">movies_rated</string>
     <string name="query_trailers">trailers</string>
     <string name="youtube">YouTube</string>
     <string name="query_reviews">reviews</string>

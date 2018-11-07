@@ -18,15 +18,20 @@ public final class NetworkUtils { //based on feedback-class will never be extend
     final static String SIZE_W185 = "w185";
     final static String SIZE_500 = "w500";
     //"w92", "w154", "w185", "w342", "w500", "w780", or "original"
-    final static String TMDB_BASE_URL="api.themoviedb.org/3";
+    final static String TMDB_BASE_URL="api.themoviedb.org/3/movie"
+            //"api.themoviedb.org/3"
+            ;
     final static String TMDB_PATH_QUERY_POPULAR=
             //"api.themoviedb.org/3/movie/popular"
             //"api.themoviedb.org/3/discover/movie"
-            "/discover/movie"
+            //"/discover/movie" //supports sorting with sort_by query string
+            "/popular"
             ;
+    final static String TMDB_PATH_QUERY_DISCOVER="/discover/movie";
+    final static String TMDB_PATH_QUERY_TOPRATED = "/top_rated";
     final static String YOUTUBE_BASE_URL="www.youtube.com/watch?v=";
 
-    final static String TMDB_PATH_MOVIE="/movie";
+    //final static String TMDB_PATH_MOVIE="/movie";
     final static String TMDB_PATH_VIDEOS="/videos";
     final static String TMDB_PATH_REVIEWS="/reviews";
     //http://api.themoviedb.org/3/movie/popular?api_key=[YOUR_API_KEY]
@@ -53,14 +58,21 @@ public final class NetworkUtils { //based on feedback-class will never be extend
                     .appendQueryParameter(PARAM_SORT, sortBy)
                     .build();
                 break;
+            case R.string.query_movies_rated:
+                builtUri = Uri.parse(HTTP + TMDB_BASE_URL + TMDB_PATH_QUERY_TOPRATED)
+                        .buildUpon()
+                        .appendQueryParameter(PARAM_API, API_KEY)
+                        .appendQueryParameter(PARAM_SORT, sortBy)
+                        .build();
+                break;
             case R.string.query_trailers:
-                builtUri = Uri.parse(HTTP + TMDB_BASE_URL + TMDB_PATH_MOVIE+"/"+ movieId +TMDB_PATH_VIDEOS)
+                builtUri = Uri.parse(HTTP + TMDB_BASE_URL +"/"+ movieId +TMDB_PATH_VIDEOS)
                         .buildUpon()
                         .appendQueryParameter(PARAM_API,API_KEY)
                         .build();
                 break;
             case R.string.query_reviews:
-                builtUri = Uri.parse(HTTP+TMDB_BASE_URL+TMDB_PATH_MOVIE+"/"+movieId+TMDB_PATH_REVIEWS)
+                builtUri = Uri.parse(HTTP+TMDB_BASE_URL+"/"+movieId+TMDB_PATH_REVIEWS)
                         .buildUpon()
                         .appendQueryParameter(PARAM_API,API_KEY)
                         .build();

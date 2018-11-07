@@ -90,7 +90,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(RESULTS_ARRAY_JSON,resultsArray.toString());
+        if (resultsArray!=null) {
+            Log.d("resultsArray!=null", String.valueOf(resultsArray));
+            outState.putString(RESULTS_ARRAY_JSON, resultsArray.toString());
+        } else{
+            Log.d("resultsArray null", String.valueOf(resultsArray));
+        }
     }
     //*/
 
@@ -102,7 +107,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
         NetworkUtils.API_KEY = getString(R.string.apikey);
 
-        MovieDbHelper dbHelper = new MovieDbHelper(this);
+        MovieDbHelper dbHelper = MovieDbHelper.getInstance(this);
+                //new MovieDbHelper(this);
         mDb = dbHelper.getWritableDatabase();
 
         mList = findViewById(R.id.rv_movies);
@@ -121,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 populateUI();
             } catch (JSONException e) {
                 e.printStackTrace();
+            } catch (Exception e){
+                e.printStackTrace();
             }
             Log.d("savedInstanceStateNN","savedInstanceState!=null");
         } else{
@@ -128,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             if (showFavs){
                 populateUI();
             } else {
-                makeSearchQuery();
+                makeSearchQuery(R.string.query_movies);
             }
         }
 
@@ -158,8 +166,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     }
 
     //@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
-    private void makeSearchQuery(){
-        URL searchUrl = NetworkUtils.buildUrl(R.string.query_movies,null);
+    private void makeSearchQuery(int s){
+        URL searchUrl = NetworkUtils.buildUrl(s,null);
         //Toast.makeText(this,searchUrl.toString(),Toast.LENGTH_LONG).show();
         //Log.d("json request",searchUrl.toString());
         //new QueryTask().execute(searchUrl);
@@ -320,6 +328,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main,menu);
+        if(!NetworkUtils.TMDB_PATH_QUERY_POPULAR.equals(NetworkUtils.TMDB_PATH_QUERY_DISCOVER)){
+            menu.findItem(R.id.least_popular).setVisible(false);
+            menu.findItem(R.id.bottom_rated).setVisible(false);
+        }else{
+            menu.findItem(R.id.least_popular).setVisible(true);
+            menu.findItem(R.id.bottom_rated).setVisible(true);
+        }
         return true;
     }
 
@@ -334,28 +349,28 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 Toast.makeText(context,textToShow,Toast.LENGTH_LONG).show();*/
                 NetworkUtils.sortBy = NetworkUtils.popularity+"."+NetworkUtils.desc;
                 clicked_menu_item_string =R.string.most_popular;
-                makeSearchQuery();
+                makeSearchQuery(R.string.query_movies);
                 //need to refactor and move setTitle and showfavs inside query-process (couple them) since query can fail (offline)
                 //setTitle(getString(R.string.most_popular));
                 showFavs = false;
                 return true;
             case R.id.least_popular:
                 NetworkUtils.sortBy = NetworkUtils.popularity+"."+NetworkUtils.asc;
-                makeSearchQuery();
+                makeSearchQuery(R.string.query_movies);
                 clicked_menu_item_string =R.string.least_popular;
                 //setTitle(getString(R.string.least_popular));
                 showFavs = false;
                 return true;
             case R.id.top_rated:
                 NetworkUtils.sortBy = NetworkUtils.vote_average+"."+NetworkUtils.desc;
-                makeSearchQuery();
+                makeSearchQuery(R.string.query_movies_rated);
                 clicked_menu_item_string =R.string.top_rated;
                 //setTitle(getString(R.string.top_rated));
                 showFavs = false;
                 return true;
             case R.id.bottom_rated:
                 NetworkUtils.sortBy = NetworkUtils.vote_average+"."+NetworkUtils.asc;
-                makeSearchQuery();
+                makeSearchQuery(R.string.query_movies_rated);
                 clicked_menu_item_string =R.string.bottom_rated;
                 //setTitle(getString(R.string.bottom_rated));
                 showFavs = false;

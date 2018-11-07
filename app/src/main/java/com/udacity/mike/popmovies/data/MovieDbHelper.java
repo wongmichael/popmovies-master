@@ -11,12 +11,23 @@ public class MovieDbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "popmovie.db";
     private static final int DATABASE_VERSION = 1;
 
+    private static MovieDbHelper sInstance;
+/*
     public MovieDbHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }*/
+
+    //private to prevent direct instantiation; use call to static method getInstanace instead
+    private MovieDbHelper(Context context){
+        super(context,DATABASE_NAME,null,DATABASE_VERSION);
     }
 
-    public MovieDbHelper(Context context){
-        super(context,DATABASE_NAME,null,DATABASE_VERSION);
+    public static synchronized MovieDbHelper getInstance(Context context) {
+        // Use the application context, which will ensure that you don't accidentally leak an Activity's context http://bit.ly/6LRzfx
+        if(sInstance==null){
+            sInstance=new MovieDbHelper(context.getApplicationContext());
+        }
+        return sInstance;
     }
 
     @Override
