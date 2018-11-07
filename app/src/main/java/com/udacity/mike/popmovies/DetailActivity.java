@@ -1,5 +1,6 @@
 package com.udacity.mike.popmovies;
 
+import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -129,12 +130,13 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
             public void onClick(View view) {
                 //Log.d("favbutton-text", String.valueOf(favButton.getText()));
                 //Log.d("text-compare", String.valueOf(favButton.getText().equals(getString(R.string.favorite))));
-                if (favButton.getText().equals(getString(R.string.favorite)) && addFavorite(m)!=null){
+                if (favButton.getText().equals(getString(R.string.favorite))){
                 //(addFavorite(m)!=-1){ //-1 is db insert error
-                    favButton.setText(R.string.unfavorite);
+                    //favButton.setText(R.string.unfavorite);
+                    addFavorite(m);
                 } else{
                     removeFavorite(m);
-                    favButton.setText(R.string.favorite);
+                    //favButton.setText(R.string.favorite);
                 }
                 //MainActivity.fAdapter.swapCursor(MainActivity.getFavorites());
             }
@@ -152,7 +154,32 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         getReviews(m.getId());
     }
 
-    private Uri addFavorite(Movie m){
+    private void addFavorite(Movie m){
+        AsyncQueryHandler queryHandler = new AsyncQueryHandler(getContentResolver()) {
+            @Override
+            protected void onInsertComplete(int token, Object cookie, Uri uri) {
+                //super.onInsertComplete(token, cookie, uri);
+                if(uri!=null){
+                    Toast.makeText(getBaseContext(),uri.toString(),Toast.LENGTH_LONG).show();
+                    if(favButton.getText().equals(getString(R.string.favorite))){
+                        favButton.setText(R.string.unfavorite);
+                    }
+                }
+            }
+        };
+
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID,m.getId());
+        cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE,m.getOrigTitle());
+        cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW,m.getOverview());
+        cv.put(MovieContract.MovieEntry.COLUMN_POSTER_PATH,m.getImage());
+        cv.put(MovieContract.MovieEntry.COLUMN_RATING,m.getRating());
+        cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE,m.getReleaseDate());
+        queryHandler.startInsert(1,null,MovieContract.MovieEntry.CONTENT_URI,cv);
+        //Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI,cv);
+    }
+
+/*    private Uri addFavorite(Movie m){
         ContentValues cv = new ContentValues();
         cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID,m.getId());
         cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE,m.getOrigTitle());
@@ -166,10 +193,30 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
             Toast.makeText(getBaseContext(),uri.toString(),Toast.LENGTH_LONG).show();
         }
         return uri;
-    }
+    }*/
 
-    private long removeFavorite(Movie m){
+/*    private long removeFavorite(Movie m){
         return MainActivity.mDb.delete(MovieContract.MovieEntry.TABLE_NAME,MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=?", new String[]{String.valueOf(m.getId())});
+    }*/
+
+    private void removeFavorite(Movie m){
+        Log.d("removeFavs","removeFavs");
+        AsyncQueryHandler queryHandler = new AsyncQueryHandler(getContentResolver()) {
+            @Override
+            protected void onDeleteComplete(int token, Object cookie, int result) {
+                //super.onDeleteComplete(token, cookie, result);
+                Log.d("odc","onDelComplete");
+                Log.d("odc result", String.valueOf(result));
+                if(result!=0){
+                    favButton.setText(R.string.favorite);
+                }
+            }
+        };
+        queryHandler.startDelete(2,null
+                ,MovieContract.MovieEntry.CONTENT_URI.buildUpon().appendPath(String.valueOf(m.getId())).build()
+                ,null//,MovieContract.MovieEntry.COLUMN_MOVIE_ID+"=?"
+                ,null//,new String[]{String.valueOf(m.getId())}
+                );
     }
 
     private void getReviews(int movieId) {
@@ -239,7 +286,9 @@ public class DetailActivity extends AppCompatActivity implements TrailerAdapter.
         Trailer t = JsonUtils.parseTrailerJsonResult(j);
         if (t.getSite().equalsIgnoreCase(getString(R.string.youtube))){
             intent.setData(Uri.parse(NetworkUtils.HTTP+NetworkUtils.YOUTUBE_BASE_URL+t.getKey()));
-            startActivity(intent);
+            if(intent.resolveActivity(getPackageManager())!=null) {
+                startActivity(intent);
+            }
         }
     }
 
